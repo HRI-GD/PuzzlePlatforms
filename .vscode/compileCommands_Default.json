@@ -1,0 +1,42 @@
+[
+	{
+		"file": "D:\\UnrealEngine\\UE_5.7 Projects\\(Udemy)Unreal C++ MultiPlayer Master\\Puzzle_Platforms\\PuzzlePlatforms\\Source\\PuzzlePlatforms\\MovingPlatform.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealEngine\\UE_5.7 Projects\\(Udemy)Unreal C++ MultiPlayer Master\\Puzzle_Platforms\\PuzzlePlatforms\\.vscode\\compileCommands_Default\\PuzzlePlatforms.1.rsp"
+		],
+		"directory": "D:\\UnrealEngine\\UE_5.7\\UE_5.7\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealEngine\\UE_5.7 Projects\\(Udemy)Unreal C++ MultiPlayer Master\\Puzzle_Platforms\\PuzzlePlatforms\\Source\\PuzzlePlatforms\\MovingPlatform.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealEngine\\UE_5.7 Projects\\(Udemy)Unreal C++ MultiPlayer Master\\Puzzle_Platforms\\PuzzlePlatforms\\.vscode\\compileCommands_Default\\PuzzlePlatforms.1.rsp"
+		],
+		"directory": "D:\\UnrealEngine\\UE_5.7\\UE_5.7\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealEngine\\UE_5.7 Projects\\(Udemy)Unreal C++ MultiPlayer Master\\Puzzle_Platforms\\PuzzlePlatforms\\Source\\PuzzlePlatforms\\PuzzlePlatforms.Build.cs",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealEngine\\UE_5.7 Projects\\(Udemy)Unreal C++ MultiPlayer Master\\Puzzle_Platforms\\PuzzlePlatforms\\.vscode\\compileCommands_Default\\PuzzlePlatforms.1.rsp"
+		],
+		"directory": "D:\\UnrealEngine\\UE_5.7\\UE_5.7\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealEngine\\UE_5.7 Projects\\(Udemy)Unreal C++ MultiPlayer Master\\Puzzle_Platforms\\PuzzlePlatforms\\Source\\PuzzlePlatforms\\PuzzlePlatforms.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealEngine\\UE_5.7 Projects\\(Udemy)Unreal C++ MultiPlayer Master\\Puzzle_Platforms\\PuzzlePlatforms\\.vscode\\compileCommands_Default\\PuzzlePlatforms.1.rsp"
+		],
+		"directory": "D:\\UnrealEngine\\UE_5.7\\UE_5.7\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealEngine\\UE_5.7 Projects\\(Udemy)Unreal C++ MultiPlayer Master\\Puzzle_Platforms\\PuzzlePlatforms\\Source\\PuzzlePlatforms\\PuzzlePlatforms.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealEngine\\UE_5.7 Projects\\(Udemy)Unreal C++ MultiPlayer Master\\Puzzle_Platforms\\PuzzlePlatforms\\.vscode\\compileCommands_Default\\PuzzlePlatforms.1.rsp"
+		],
+		"directory": "D:\\UnrealEngine\\UE_5.7\\UE_5.7\\Engine\\Source"
+	}
+]
