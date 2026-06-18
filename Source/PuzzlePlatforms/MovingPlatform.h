@@ -14,4 +14,13 @@ class PUZZLEPLATFORMS_API AMovingPlatform : public AStaticMeshActor
 {
 	GENERATED_BODY()
 	
+	public:
+	
+		AMovingPlatform();
+
+		virtual void BeginPlay() override;
+		virtual void Tick(float DeltaTime) override;
+
+		UPROPERTY(EditAnywhere, Category = "Moving Platform")
+		float PlatformSpeed = 10.0f;
 };
