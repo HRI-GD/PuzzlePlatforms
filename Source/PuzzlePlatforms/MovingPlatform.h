@@ -23,4 +23,13 @@ class PUZZLEPLATFORMS_API AMovingPlatform : public AStaticMeshActor
 
 		UPROPERTY(EditAnywhere, Category = "Moving Platform")
 		float PlatformSpeed = 10.0f;
+		UPROPERTY(EditAnywhere, Category = "Moving Platform", meta = (MakeEditWidget = true))
+		FVector TargetLocation;
+		UPROPERTY(EditAnywhere, Category = "Moving Platform")
+		bool bShouldReturn = true;
+
+	private:
+		FVector GlobalStartLocation;
+		FVector GlobalTargetLocation;
+		bool bHasReachedTarget = false;
 };
