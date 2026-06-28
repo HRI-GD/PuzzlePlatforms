@@ -67,6 +67,7 @@ void AMovingPlatform::Tick(float DeltaTime)
             else
             {
                 bHasReachedTarget = true;
+                SetActorTickEnabled(false);
             }
         }
     }
@@ -84,7 +85,10 @@ void AMovingPlatform::AddActiveTrigger()
 
 void AMovingPlatform::RemoveActiveTrigger()
 {
-    ActiveTriggers--;
+    if (ActiveTriggers > 0)
+    {
+        ActiveTriggers--;
+    }
 
     if (ActiveTriggers <= 0)
     {
