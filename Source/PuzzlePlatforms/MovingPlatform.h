@@ -28,8 +28,17 @@ class PUZZLEPLATFORMS_API AMovingPlatform : public AStaticMeshActor
 		UPROPERTY(EditAnywhere, Category = "Moving Platform")
 		bool bShouldReturn = true;
 
+		void AddActiveTrigger();
+		void RemoveActiveTrigger();
+
 	private:
 		FVector GlobalStartLocation;
 		FVector GlobalTargetLocation;
 		bool bHasReachedTarget = false;
+
+		UPROPERTY(EditAnywhere, Category = "Moving Platform")
+		int32 RequiredActiveTriggers = 1;
+		UPROPERTY(EditAnywhere, Category = "Moving Platform")
+		bool bTriggerablePlatform = false;
+		int32 ActiveTriggers = 0;
 };
