@@ -80,14 +80,15 @@ void AMovingPlatform::AddActiveTrigger()
 
 void AMovingPlatform::RemoveActiveTrigger()
 {
-    if(ActiveTriggers > 0)
-    {
-        ActiveTriggers--;
-    }
+    ActiveTriggers--;
 
     if (ActiveTriggers <= 0)
     {
         ActiveTriggers = 0;
+    }
+
+    if(ActiveTriggers < RequiredActiveTriggers)
+    {
         SetActorTickEnabled(false);
     }
 }
