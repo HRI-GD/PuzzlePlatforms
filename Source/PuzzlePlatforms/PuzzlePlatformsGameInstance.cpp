@@ -6,6 +6,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
 
+#include "MenuSystem/MainMenu.h"
+
 
 UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitializer& ObjectInitializer)
 {
@@ -29,26 +31,20 @@ void UPuzzlePlatformsGameInstance::LoadMenu()
     if(!ensure(MenuClass != nullptr)) return;
 
     // MenuClass를 사용하여 메뉴 위젯 생성
-    UUserWidget* MenuWidget = CreateWidget<UUserWidget>(this, MenuClass);
-    if(!ensure(MenuWidget != nullptr)) return;
-    
-    // 메뉴 위젯을 뷰포트에 추가
-    MenuWidget->AddToViewport();
+    this->Menu = CreateWidget<UMainMenu>(this, MenuClass);
+    if(!ensure(Menu != nullptr)) return;
 
-    // Input Mode와 Cursor 설정을 위해 PlayerController를 가져옴
-    APlayerController* PlayerController = GetFirstLocalPlayerController();
-    if(!ensure(PlayerController != nullptr)) return;
-
-    // 마우스 커서를 표시하고 포커스를 메뉴 위젯에 설정
-    FInputModeUIOnly InputMode;
-    InputMode.SetWidgetToFocus(MenuWidget->TakeWidget());
-    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-    PlayerController->SetInputMode(InputMode);
-    PlayerController->bShowMouseCursor = true;
+    this->Menu->Setup();
+    this->Menu->SetMenuInterface(this);
 }
 
 void UPuzzlePlatformsGameInstance::Host()
 {
+    if (Menu != nullptr)
+    {
+        this->Menu->Teardown();
+    }
+    
     // 엔진 가져오기
     UEngine* Engine = GetEngine();
     if(!ensure(Engine != nullptr)) return;
@@ -66,6 +62,11 @@ void UPuzzlePlatformsGameInstance::Host()
 
 void UPuzzlePlatformsGameInstance::Join(const FString& Address)
 {
+    if (Menu != nullptr)
+    {
+        this->Menu->Teardown();
+    }
+    
     // 엔진 가져오기
     UEngine *Engine = GetEngine();
     if(!ensure(Engine != nullptr)) return;
