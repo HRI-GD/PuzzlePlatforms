@@ -7,14 +7,20 @@
 #include "Blueprint/UserWidget.h"
 
 #include "MenuSystem/MainMenu.h"
+#include "MenuSystem/MenuWidget.h"
 
 
 UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitializer& ObjectInitializer)
 {
+    // MainMenu 클래스 찾기
     ConstructorHelpers::FClassFinder<UUserWidget> MenuBPClass(TEXT("/Game/MenuSystem/WBP_MainMenu"));
     if(!ensure(MenuBPClass.Class != nullptr)) return;   
-
     this->MenuClass = MenuBPClass.Class;
+
+    // InGameMenu 클래스 찾기
+    ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuBPClass(TEXT("/Game/MenuSystem/WBP_InGameMenu"));
+    if(!ensure(InGameMenuBPClass.Class != nullptr)) return;
+    this->InGameMenuClass = InGameMenuBPClass.Class;
 }
 
 void UPuzzlePlatformsGameInstance::Init()
@@ -22,6 +28,11 @@ void UPuzzlePlatformsGameInstance::Init()
     if (MenuClass)
     {
         UE_LOG(LogTemp, Warning, TEXT("Menu Class: %s"), *MenuClass->GetName());
+    }
+
+    if (InGameMenuClass)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("InGameMenu Class: %s"), *InGameMenuClass->GetName());
     }
 }
 
@@ -36,6 +47,28 @@ void UPuzzlePlatformsGameInstance::LoadMenu()
 
     this->Menu->Setup();
     this->Menu->SetMenuInterface(this);
+}
+
+void UPuzzlePlatformsGameInstance::LoadInGameMenu()
+{
+    // InGameMenuClass가 존재하는지 확인
+    if(!ensure(InGameMenuClass != nullptr)) return;
+
+    // InGameMenuClass를 사용하여 인게임 메뉴 위젯 생성
+    UMenuWidget* InGameMenu = CreateWidget<UMenuWidget>(this, InGameMenuClass);
+    if(!ensure(InGameMenu != nullptr)) return;
+
+    InGameMenu->Setup();
+    InGameMenu->SetMenuInterface(this);
+}
+
+void UPuzzlePlatformsGameInstance::LoadMainMenu()
+{
+    APlayerController* PlayerController = GetFirstLocalPlayerController();
+    if(!ensure(PlayerController != nullptr)) return;
+
+    PlayerController->ClientTravel(TEXT("/Game/PuzzlePlatforms/Maps/MainMenu"), ETravelType::TRAVEL_Absolute);
+
 }
 
 void UPuzzlePlatformsGameInstance::Host()
