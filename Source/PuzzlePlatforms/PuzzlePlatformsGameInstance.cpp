@@ -5,10 +5,13 @@
 #include "Engine/Engine.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
+#include "OnlineSessionSettings.h"
+#include "Interfaces/OnlineSessionInterface.h"
 
 #include "MenuSystem/MainMenu.h"
 #include "MenuSystem/MenuWidget.h"
 
+const static FName SESSION_NAME = FName(TEXT("My Game Session"));
 
 UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitializer& ObjectInitializer)
 {
@@ -25,14 +28,20 @@ UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitiali
 
 void UPuzzlePlatformsGameInstance::Init()
 {
-    if (MenuClass)
+    IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+    if (OnlineSubsystem != nullptr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Menu Class: %s"), *MenuClass->GetName());
+        UE_LOG(LogTemp, Warning, TEXT("Online Subsystem: %s"), *OnlineSubsystem->GetSubsystemName().ToString());
+        this->SessionInterface = OnlineSubsystem->GetSessionInterface();
+        if(this->SessionInterface.IsValid())
+        {
+            this->SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformsGameInstance::OnCreateSessionComplete);
+            this->SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformsGameInstance::OnDestroySessionComplete);
+        }
     }
-
-    if (InGameMenuClass)
+    else
     {
-        UE_LOG(LogTemp, Warning, TEXT("InGameMenu Class: %s"), *InGameMenuClass->GetName());
+        UE_LOG(LogTemp, Warning, TEXT("Online Subsystem not found"));
     }
 }
 
@@ -73,6 +82,40 @@ void UPuzzlePlatformsGameInstance::LoadMainMenu()
 
 void UPuzzlePlatformsGameInstance::Host()
 {
+    if (this->SessionInterface.IsValid())
+    {
+        auto ExistingSession = this->SessionInterface->GetNamedSession(SESSION_NAME);
+        if(ExistingSession != nullptr)
+        {
+            this->SessionInterface->DestroySession(SESSION_NAME);
+            // Init에서 OnDestroySessionCompleteDelegates 등록했기 때문에 DestroySession 후 OnDestroySessionComplete 함수가 호출됨
+        }
+        else
+        {
+            CreateSession();
+        }
+    }
+}
+
+void UPuzzlePlatformsGameInstance::CreateSession()
+{
+    if(SessionInterface.IsValid())
+    {
+        FOnlineSessionSettings SessionSettings;
+        this->SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
+        // Init에서 OnCreateSessionCompleteDelegates 등록했기 때문에 CreateSession 후 OnCreateSessionComplete 함수가 호출됨
+    }
+
+}
+
+void UPuzzlePlatformsGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
+{
+    if (!Success)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to create session"));
+        return;
+    }
+
     if (Menu != nullptr)
     {
         this->Menu->Teardown();
@@ -91,6 +134,15 @@ void UPuzzlePlatformsGameInstance::Host()
 
     // 서버 트래블
     World->ServerTravel(FString::Printf(TEXT("/Game/ThirdPerson/Lvl_ThirdPerson?listen")));
+    
+}
+
+void UPuzzlePlatformsGameInstance::OnDestroySessionComplete(FName SessionName, bool Success)
+{
+    if (Success)
+    {
+        CreateSession();
+    }
 }
 
 void UPuzzlePlatformsGameInstance::Join(const FString& Address)
