@@ -31,8 +31,9 @@ public:
 	UFUNCTION(Exec)
 	void Host() override;
 	UFUNCTION(Exec)
-	void Join(const FString& Address) override;
+	void Join(uint32 Index) override;
 	void LoadMainMenu() override;
+	void RefreshServerList() override;
 
 private:
 	TSubclassOf<class UUserWidget> MenuClass;
@@ -41,8 +42,11 @@ private:
 	TSubclassOf<class UUserWidget> InGameMenuClass;
 
 	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
 	void OnCreateSessionComplete(FName SessionName, bool Success);
 	void OnDestroySessionComplete(FName SessionName, bool Success);
+	void OnFindSessionsComplete(bool Success);
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 	void CreateSession();
 };

@@ -3,9 +3,22 @@
 
 #include "MainMenu.h"
 
+#include "UObject/ConstructorHelpers.h"
+
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
+#include "Components/TextBlock.h"
+
+#include "ServerRow.h"
+
+
+UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
+{
+    ConstructorHelpers::FClassFinder<UUserWidget> ServerRowBPClass(TEXT("/Game/MenuSystem/WBP_ServerRow"));
+    if(!ensure(ServerRowBPClass.Class != nullptr)) return;
+    this->ServerRowClass = ServerRowBPClass.Class;
+}
 
 bool UMainMenu::Initialize()
 {
@@ -27,6 +40,7 @@ bool UMainMenu::Initialize()
     
     if(!ensure(JoinServerButton != nullptr)) return false;
     this->JoinServerButton->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
+
 
     return true;
 }
@@ -53,6 +67,10 @@ void UMainMenu::OpenJoinMenu()
     if(!ensure(MenuSwitcher != nullptr)) return;
     if(!ensure(JoinMenu != nullptr)) return;
     MenuSwitcher->SetActiveWidget(JoinMenu);
+    if(MenuInterface != nullptr)
+    {
+        MenuInterface->RefreshServerList();
+    }
 }
 
 void UMainMenu::OpenMainMenu()
@@ -62,12 +80,51 @@ void UMainMenu::OpenMainMenu()
     MenuSwitcher->SetActiveWidget(MainMenu);
 }
 
+void UMainMenu::SetServerList(TArray<FString> ServerNames)
+{
+    ServerList->ClearChildren();
+
+    uint32 Index = 0;
+    for(const FString& ServerName : ServerNames)
+    {
+        UServerRow* ServerRow = CreateWidget<UServerRow>(this, this->ServerRowClass);
+        if(!ensure(ServerRow != nullptr)) return;
+
+        ServerRow->ServerName->SetText(FText::FromString(ServerName));
+        ServerRow->Setup(this, Index);
+
+        ServerList->AddChild(ServerRow);
+        ++Index;
+    }
+}
+
+void UMainMenu::SelectIndex(uint32 Index)
+{
+    SelectedIndex = Index;
+    UpdateChildren();
+}
+
+void UMainMenu::UpdateChildren()
+{
+    for(int32 i = 0; i < ServerList->GetChildrenCount(); i++)
+    {
+        auto Row = Cast<UServerRow>(ServerList->GetChildAt(i));
+        if(Row != nullptr)
+        {
+            Row->Selected = (SelectedIndex.IsSet() && SelectedIndex.GetValue() == i);
+        }
+    }
+}
+
 void UMainMenu::JoinServer()
 {
-    if(MenuInterface != nullptr)
+    if(SelectedIndex.IsSet() && MenuInterface != nullptr)
     {
-        if(!ensure(IPAddressField != nullptr)) return;
-        const FString& Address = IPAddressField->GetText().ToString();
-        MenuInterface->Join(Address);
+        UE_LOG(LogTemp, Warning, TEXT("Selected index: %d"), SelectedIndex.GetValue());
+        MenuInterface->Join(this->SelectedIndex.GetValue());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No index selected"));
     }
 }
