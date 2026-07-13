@@ -12,6 +12,7 @@
 #include "MenuSystem/MenuWidget.h"
 
 const static FName SESSION_NAME = FName(TEXT("My Game Session"));
+const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitializer& ObjectInitializer)
 {
@@ -82,8 +83,9 @@ void UPuzzlePlatformsGameInstance::LoadMainMenu()
 
 }
 
-void UPuzzlePlatformsGameInstance::Host()
+void UPuzzlePlatformsGameInstance::Host(FString ServerName)
 {
+    this->DesiredServerName = ServerName;
     if (this->SessionInterface.IsValid())
     {
         auto ExistingSession = this->SessionInterface->GetNamedSession(SESSION_NAME);
@@ -104,13 +106,16 @@ void UPuzzlePlatformsGameInstance::CreateSession()
     if(SessionInterface.IsValid())
     {
         FOnlineSessionSettings SessionSettings;
-        
-        IOnlineSubsystem::Get()->GetSubsystemName() == "Steam" ? SessionSettings.bIsLANMatch = true : SessionSettings.bIsLANMatch = false;
+
+        // NULL 서브시스템(-nosteam)이면 LAN 모드, Steam이면 온라인 모드
+        const bool bIsNull = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL";
+        SessionSettings.bIsLANMatch = bIsNull;
+        SessionSettings.bUsesPresence = !bIsNull;
+        //UE5 Steam: bUseLobbiesIfAvailable은 bUsesPresence와 같은 값이어야 함
+        SessionSettings.bUseLobbiesIfAvailable = !bIsNull;
         SessionSettings.NumPublicConnections = 2;
         SessionSettings.bShouldAdvertise = true;
-        SessionSettings.bUsesPresence = true;
-        //UE5 Steam: bUsesPresence와 같은 값이어야 함
-        SessionSettings.bUseLobbiesIfAvailable = true;
+        SessionSettings.Set(SERVER_NAME_SETTINGS_KEY, this->DesiredServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
         this->SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
         // Init에서 OnCreateSessionCompleteDelegates 등록했기 때문에 CreateSession 후 OnCreateSessionComplete 함수가 호출됨
     }
@@ -142,7 +147,7 @@ void UPuzzlePlatformsGameInstance::OnCreateSessionComplete(FName SessionName, bo
     if(!ensure(World != nullptr)) return;
 
     // 서버 트래블
-    World->ServerTravel(FString::Printf(TEXT("/Game/ThirdPerson/Lvl_ThirdPerson?listen")));
+    World->ServerTravel(FString::Printf(TEXT("/Game/PuzzlePlatforms/Maps/Lobby?listen")));
     
 }
 
@@ -178,7 +183,14 @@ void UPuzzlePlatformsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJ
 
     FString Address;
     if(!this->SessionInterface->GetResolvedConnectString(SessionName, Address)) return;
-    
+
+    // NULL 서브시스템은 listen 전에 세션을 만들어 포트가 0으로 광고되는 경우가 있음
+    // 이 경우 포트를 7777로 변경
+    if (Address.EndsWith(TEXT(":0")))
+    {
+        Address = Address.LeftChop(2) + TEXT(":7777");
+    }
+
     // 메뉴 닫기
     if (this->Menu) this->Menu->Teardown();
 
@@ -204,10 +216,16 @@ void UPuzzlePlatformsGameInstance::RefreshServerList()
         this->SessionSearch = MakeShareable(new FOnlineSessionSearch());
         if(this->SessionSearch.IsValid())
         {
-            SessionSearch->bIsLanQuery = true;
-            this->SessionSearch->MaxSearchResults = 1000;
-            // UE5.5+: SEARCH_PRESENCE 제거됨 → Steam은 SEARCH_LOBBIES 사용
-            this->SessionSearch->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
+            // NULL 서브시스템(-nosteam)이면 LAN 검색, Steam이면 온라인 검색
+            const bool bIsNull = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL";
+            SessionSearch->bIsLanQuery = bIsNull;
+            // 테스트용 AppID 480 (Spacewar)을 사용중이기 때문에 최대 검색 결과를 5000으로 설정
+            this->SessionSearch->MaxSearchResults = 5000;
+            if (!bIsNull)
+            {
+                // UE5.5+: SEARCH_PRESENCE 제거됨 → Steam은 SEARCH_LOBBIES 사용
+                this->SessionSearch->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
+            }
             UE_LOG(LogTemp, Warning, TEXT("Finding Sessions..."));
             this->SessionInterface->FindSessions(0, this->SessionSearch.ToSharedRef());
         }
@@ -220,17 +238,28 @@ void UPuzzlePlatformsGameInstance::OnFindSessionsComplete(bool Success)
     {
         UE_LOG(LogTemp, Warning, TEXT("Finished finding sessions"));
 
-        TArray<FString> ServerNames;
-
-        // ServerNames.Add("Test Server1");
-        // ServerNames.Add("Test Server2");
-        // ServerNames.Add("Test Server3");
-
+        TArray<FServerData> ServerData;
         for(const FOnlineSessionSearchResult& SearchResult : this->SessionSearch->SearchResults)
         {
             UE_LOG(LogTemp, Warning, TEXT("Found Session Name: %s"), *SearchResult.GetSessionIdStr());
-            ServerNames.Add(SearchResult.GetSessionIdStr());
+            FServerData ServerDataItem;
+            
+            ServerDataItem.MaxPlayers = SearchResult.Session.SessionSettings.NumPublicConnections;
+            ServerDataItem.CurrentPlayers = ServerDataItem.MaxPlayers - SearchResult.Session.NumOpenPublicConnections;
+            ServerDataItem.HostUsername = SearchResult.Session.OwningUserName;
+
+            FString ServerName;
+            if(SearchResult.Session.SessionSettings.Get(SERVER_NAME_SETTINGS_KEY, ServerName))
+            {
+                ServerDataItem.Name = ServerName;
+            }
+            else
+            {
+                ServerDataItem.Name = "Could not find name.";
+            }
+
+            ServerData.Add(ServerDataItem);
         }
-        this->Menu->SetServerList(ServerNames);
+        this->Menu->SetServerList(ServerData);
     }
 }

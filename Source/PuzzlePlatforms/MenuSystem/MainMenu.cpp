@@ -26,18 +26,23 @@ bool UMainMenu::Initialize()
     if(!Success) return false;
 
     // TODO: Setup
+    // 메인 메뉴
     if(!ensure(QuitButton != nullptr)) return false;
     this->QuitButton->OnClicked.AddDynamic(this, &UMainMenu::QuitGame);
-
     if(!ensure(HostButton != nullptr)) return false;
-    this->HostButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
-
+    this->HostButton->OnClicked.AddDynamic(this, &UMainMenu::OpenHostMenu);
     if(!ensure(JoinButton != nullptr)) return false;
     this->JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
 
+    // 호스트 메뉴
+    if(!ensure(CancelHostMenuButton != nullptr)) return false;
+    this->CancelHostMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
+    if(!ensure(HostServerButton != nullptr)) return false;
+    this->HostServerButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
+
+    // 조인 메뉴
     if(!ensure(CancelJoinMenuButton != nullptr)) return false;
     this->CancelJoinMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
-    
     if(!ensure(JoinServerButton != nullptr)) return false;
     this->JoinServerButton->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
 
@@ -59,7 +64,15 @@ void UMainMenu::QuitGame()
 void UMainMenu::HostServer()
 {
     if(!ensure(MenuInterface != nullptr)) return;
-    MenuInterface->Host();
+    FString ServerName = this->ServerHostName->GetText().ToString();
+    MenuInterface->Host(ServerName);
+}
+
+void UMainMenu::OpenHostMenu()
+{
+    if(!ensure(MenuSwitcher != nullptr)) return;
+    if(!ensure(HostMenu != nullptr)) return;
+    MenuSwitcher->SetActiveWidget(HostMenu);
 }
 
 void UMainMenu::OpenJoinMenu()
@@ -80,17 +93,19 @@ void UMainMenu::OpenMainMenu()
     MenuSwitcher->SetActiveWidget(MainMenu);
 }
 
-void UMainMenu::SetServerList(TArray<FString> ServerNames)
+void UMainMenu::SetServerList(TArray<FServerData> ServerData)
 {
     ServerList->ClearChildren();
 
     uint32 Index = 0;
-    for(const FString& ServerName : ServerNames)
+    for(const FServerData& ServerDataItem : ServerData)
     {
         UServerRow* ServerRow = CreateWidget<UServerRow>(this, this->ServerRowClass);
         if(!ensure(ServerRow != nullptr)) return;
 
-        ServerRow->ServerName->SetText(FText::FromString(ServerName));
+        ServerRow->ServerName->SetText(FText::FromString(ServerDataItem.Name));
+        ServerRow->HostUsername->SetText(FText::FromString(ServerDataItem.HostUsername));
+        ServerRow->ConnectionFraction->SetText(FText::FromString(FString::Printf(TEXT("%d/%d"), ServerDataItem.CurrentPlayers, ServerDataItem.MaxPlayers)));
         ServerRow->Setup(this, Index);
 
         ServerList->AddChild(ServerRow);
