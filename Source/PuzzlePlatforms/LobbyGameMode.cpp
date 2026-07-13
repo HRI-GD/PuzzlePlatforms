@@ -7,9 +7,12 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);
     NumberOfPlayers++;
-    if(NumberOfPlayers >= 3)
+    if(NumberOfPlayers >= 2)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Game is starting!"));
+        UWorld* World = GetWorld();
+        if(!ensure(World != nullptr)) return;
+        bUseSeamlessTravel = true;
+        World->ServerTravel(FString("/Game/PuzzlePlatforms/Maps/Game?listen"));
     }
 }
 
