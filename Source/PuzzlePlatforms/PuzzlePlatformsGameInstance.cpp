@@ -11,7 +11,7 @@
 #include "MenuSystem/MainMenu.h"
 #include "MenuSystem/MenuWidget.h"
 
-const static FName SESSION_NAME = FName(TEXT("My Game Session"));
+const static FName SESSION_NAME = FName(TEXT("GameSession"));
 const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitializer& ObjectInitializer)
@@ -45,6 +45,11 @@ void UPuzzlePlatformsGameInstance::Init()
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("Online Subsystem not found"));
+    }
+
+    if(GEngine)
+    {
+        GEngine->OnNetworkFailure().AddUObject(this, &UPuzzlePlatformsGameInstance::OnNetworkFailure);
     }
 }
 
@@ -113,7 +118,7 @@ void UPuzzlePlatformsGameInstance::CreateSession()
         SessionSettings.bUsesPresence = !bIsNull;
         //UE5 Steam: bUseLobbiesIfAvailable은 bUsesPresence와 같은 값이어야 함
         SessionSettings.bUseLobbiesIfAvailable = !bIsNull;
-        SessionSettings.NumPublicConnections = 2;
+        SessionSettings.NumPublicConnections = 3;
         SessionSettings.bShouldAdvertise = true;
         SessionSettings.Set(SERVER_NAME_SETTINGS_KEY, this->DesiredServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
         this->SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
@@ -159,11 +164,25 @@ void UPuzzlePlatformsGameInstance::OnDestroySessionComplete(FName SessionName, b
     }
 }
 
+void UPuzzlePlatformsGameInstance::OnNetworkFailure(UObject* WorldContextObject, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
+{
+    LoadMainMenu();
+}
+
 void UPuzzlePlatformsGameInstance::Join(uint32 Index)
 {
     if(!this->SessionInterface.IsValid() || !this->SessionSearch.IsValid()) return;
     if(!this->SessionSearch->SearchResults.IsValidIndex(Index)) return;
     this->SessionInterface->JoinSession(0, SESSION_NAME, this->SessionSearch->SearchResults[Index]);
+}
+
+void UPuzzlePlatformsGameInstance::StartSession()
+{
+    if(this-SessionInterface.IsValid())
+    {
+        this->SessionInterface->StartSession(SESSION_NAME);
+    }
+
 }
 
 void UPuzzlePlatformsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)

@@ -14,11 +14,17 @@ class PUZZLEPLATFORMS_API ALobbyGameMode : public APuzzlePlatformsGameMode
 {
 	GENERATED_BODY()
 
-	virtual void PostLogin(APlayerController* NewPlayer) override;
-	virtual void Logout(AController* Exiting) override;
+	
+public:
 
 protected:
 
 private:
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
+
 	int32 NumberOfPlayers = 0;
+	FTimerHandle GameStartTimer;
+
+	void StartGame();
 };
