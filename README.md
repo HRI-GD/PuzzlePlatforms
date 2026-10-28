@@ -6,11 +6,6 @@ Unreal Engine 5.7과 C++로 서버 권한 기반 플랫폼 이동, 세션 생성
 
 > 아래 기능 설명과 실행 방법은 최신 구현이 있는 [`dev` 브랜치](https://github.com/HRI-GD/PuzzlePlatforms/tree/dev)를 기준으로 합니다. `main`에는 이전 단계의 게임 코드가 있습니다.
 
-## 스크린샷
-
-![PuzzlePlatforms 메인 메뉴](docs/images/main-menu.jpg)
-
-![PuzzlePlatforms 게임 레벨](docs/images/gameplay.jpg)
 
 ## 프로젝트 개요
 
